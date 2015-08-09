@@ -1,0 +1,8 @@
+( localhost webdrive blk8: see -4- )
+       ['] (.")     of  .' ." ' seestringlit .' " ' endof
+       ['] (s")     of  .' s" ' seestringlit .' " ' endof
+       ['] (c")     of  .' c" ' seestringlit .' " ' endof
+       ['] (abort") of  .' abort" ' seestringlit .' " ' endof
+       ['] (to)     of  ." to " skim body> .name space endof
+    dup name dup if type else 2drop ." (headerless)" then space
+  endcase  ;

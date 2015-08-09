@@ -1,0 +1,9 @@
+( localhost webdrive blk12: editor -load screen- )
+
+( needs l and p from screen 8 )
+vocabulary editor
+editor definitions
+1 7 +thru
+forth definitions
+editor also
+

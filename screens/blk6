@@ -1,0 +1,16 @@
+( localhost webdrive blk6: see -2- )
+: seeblock (s xt pos -- ) 
+   swap dup last @ = >r 
+   1+ locate dup 0< r> or
+   if   drop l/s else over - c/l / then >r
+   c/s /mod  scr ! c/l / r> 1 max range swap
+   l/s min swap do i .line cr loop ;
+
+: seeprimitive (s xt -- ) here tuck disassemble 0 ?do count
+   dup 10 = if drop cr else emit then loop  drop  ;
+: seestringlit (s a1 -- a2 ) count 2dup type + ;
+create indent 0 ,
+: indentline ( s -- )  cr indent @ spaces ;
+: !indent (s n -- )    indent ! ;
+: +indent (s n -- )    indent +! indentline ;
+: -indent (s n -- )    negate +indent ;

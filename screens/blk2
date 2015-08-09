@@ -1,0 +1,16 @@
+( localhost webdrive blk2: record constructor )
+
+variable current_record
+
+: record:    create   ( <recordconstructor> -- )
+   here current_record !  cell ,
+   does>  ( <recordname> -- )
+   create @ dup , allot  ;
+
+
+: field:     
+   create  ( fieldsize <fieldname> -- ) 
+      current_record @ dup @ , +!
+   does>   ( a1 -- a2 )  @ + ;
+
+: about ( -- ) s" RecordConstructor" wiki ;

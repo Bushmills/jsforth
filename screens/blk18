@@ -1,0 +1,11 @@
+( localhost webdrive blk18: editor -6- )
+
+: edit-command ( line column asc -- line column f )
+   >r edit-commands count tuck r> scan nip
+   dup if
+      - cells edit-actions + perform exit
+   then nip ;
+
+( unfinished )
+: edit-embed ( line column asc -- line column ) emit ;
+

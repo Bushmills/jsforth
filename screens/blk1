@@ -1,0 +1,7 @@
+( localhost webdrive blk1: case of endof endcase test )
+: foo ( -- )
+   case
+      2 of    4 .  endof
+      5 of   10 .  endof
+      dup .
+   endcase  ;

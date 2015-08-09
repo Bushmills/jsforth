@@ -1,0 +1,16 @@
+( localhost webdrive blk11: allocate / free test )
+create nhandles  0 ,   create handles  100 cells allot
+
+: rndallocate ( -- )  1000 random 5 + allocate drop nhandles @
+ cells handles + !  1 nhandles +!  ;
+
+: rndfree ( -- )  nhandles @  dup random cells handles +
+   dup @ free drop swap 1-  dup nhandles !
+   cells handles + @ swap ! ;
+
+: run1  nhandles @ if  nhandles @ 99 < if 1000 random 500 <
+ if rndfree else rndallocate then else rndfree then else 
+ rndallocate then  ;
+: go begin run1 cls .allocated key? until  ;
+: timing begin startclock 1000 0 do run1 loop
+         elapsed . cr key? until ;

@@ -1,0 +1,16 @@
+( localhost webdrive blk13: editor -1a- )
+create editmode  char E c,  ( Command Edit )
+
+: show-cursor-x ( u -- )
+   2 + >r
+   here c/l 2 + blank
+   [char] ^ here r@ + c!
+   here c/l 2 + 17 writeline
+   editmode c@ here c!
+   [char] v here r> + c! 
+   here c/l 2 + 0 writeline ;
+
+: show-cursor-y ( l1 l2 -- )
+   1+ >r 1+ >r
+   here dup r@ readline bl here c! r> writeline
+   here dup r@ readline [char] >  here c! r> writeline ;

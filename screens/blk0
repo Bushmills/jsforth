@@ -1,0 +1,7 @@
+( localhost webdrive blk0: misc tools )
+
+: bitsplit (s u1 -- u2 u3 )  dup dup 1- and tuck xor ;
+
+: append ( a1 n a2 -- )  
+      dup >r count dup >r rot >r + r@ move 2r> + r> c! ;
+

@@ -1,0 +1,16 @@
+( localhost webdrive blk4: basic data structures )
+
+: array  create ( u -- )   cells allot
+         does>  ( u -- a ) swap cells + ;
+
+: table  create ( -- )  
+         does>  ( u -- a ) swap cells + @ ;
+
+: emitter create ( c -- )  c, 
+          does>  ( -- )    c@ emit ;
+
+: plural create ( xt -- ) , 
+     does>  ( u -- ) @ swap 0 ?do dup >r execute r> loop drop ;
+
+( char * emitter star )
+( ' star plural stars )

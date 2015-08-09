@@ -1,0 +1,16 @@
+( localhost webdrive blk16: editor -4- )
+
+: cleft ( l1 c1 -- l2 c2 f )
+   dup 0= if cup 2drop c/l then 
+   1- dup show-cursor-x 0 ;
+
+: cright ( l1 c1 -- l2 c2 f )
+   1+ dup c/l u< if dup show-cursor-x 0
+   else  c/l mod dup show-cursor-x cdown then ;
+
+: changeeditmode ( l c -- l c f )
+   editmode c!
+   dup show-cursor-x 0  ;
+
+: editinsert ( l c -- l c f )  [char] I changeeditmode ;
+: editoverlay ( l c -- l c f ) [char] O changeeditmode ;

@@ -1,0 +1,16 @@
+( localhost webdrive blk15: editor -3- )
+: cup  ( l1 c1 -- l2 c2 f ) 
+   swap  ?dup if
+     dup 1- tuck show-cursor-y swap 0
+   else 
+     l/s 1- swap editprev 
+   then ;
+
+: cdown ( l1 c1 -- l2 c2 f )
+   swap dup 1+
+   dup l/s u< 
+   if
+      tuck show-cursor-y swap 0
+   else 
+      nip l/s mod swap editnext
+   then ;

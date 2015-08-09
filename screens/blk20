@@ -1,0 +1,11 @@
+( localhost webdrive blk20: PUT/GET server i/o )
+( unfinished )
+
+( a n -- )
+: server://url postserver push$ push$ append$ pop$ url ;
+
+: PUT ( a n -- )  server://url ;
+
+ ( a1 n a2 -- n ) 
+: GET >r server://url pagecontents tuck r> swap move ; 
+

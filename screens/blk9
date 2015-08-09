@@ -1,0 +1,15 @@
+( localhost webdrive blk9: see -5- )
+: decompile1 ( xt -- ) 
+   3 +indent  begin skim 
+   dup ['] exit <> while .word
+   repeat 2drop ."  ; " 0 !indent ;
+
+: decompile (s xt -- )  dup >r
+  case dup wordtype
+               0 of        seeprimitive               endof
+     ['] (const) of dup >body @ . ." constant " .name endof
+     ['] (var)   of dup >body @ . ." variable " .name endof
+     ['] (nest)  of ." : " dup .name space dup stackeffect type
+                    >body decompile1 endof
+     over .name ."  does>" decompile1
+ endcase  r> ?immediate if ." immediate " then  ;

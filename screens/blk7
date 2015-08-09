@@ -1,0 +1,14 @@
+( localhost webdrive blk7: see -3- )
+: .word (s a xt -- a' )
+  case ['] (lit)    of skim . endof
+       ['] (0branch) of  ." 0branch" skim . endof
+       ['] (branch) of            ." branch" skim . endof
+       ['] (for)    of  ." for " 3 +indent  cell+   endof
+       ['] (do)     of  ." do "  3 +indent  cell+   endof 
+       ['] (?do)    of  ." ?do " 3 +indent  cell+   endof 
+       ['] (next)   of 3 -indent ." next "  cell+   endof
+       ['] (loop)   of 3 -indent ." loop "  cell+   endof
+       ['] (+loop)  of 3 -indent ." +loop " cell+   endof
+       ['] (leave)  of  ." leave "         cell+    endof 
+       ['] (?leave) of  ." ?leave "        cell+    endof 
+       ['] (of)     of            ." of "   cell+   endof

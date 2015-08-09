@@ -1,0 +1,380 @@
+#!/bin/bash
+
+# execute this file to build the jsforth webdrive screens.
+# this also works when running jsforth locally.
+# in the directory of jsforth, create a subdirectory with name "webdrive":
+#      cd directory_containing_jsforth
+#      mkdir webdrive
+#
+# move this file into the webdrive directory:
+#      cp screens webdrive
+#
+# change to the webdrive directory:
+#      cd webdrive
+#
+# execute this file:
+#      ./screens
+#
+# A number of files with names  blk<n> are created,
+# which will be visible from jsforth as blocks with numbers above
+# ramdrive.
+
+# modifications to screens are best done in this script, as there
+# is no automated conciliation feature. after modification, execute
+# this script to recreate the block files.
+# the first line of each screen sction in this script will be inserted
+# into the comment line which is generated for each screen. Therefore
+# the first lines haven't been marked as comments.
+
+# Note that \ for comments in screens does not comment until end of line,
+# but until end of screen. Only ( ) will do, but don't rely on \ for
+# end-of-screen comments, as it may get changed.
+
+
+COMMENT="localhost webdrive"
+SCREENNUMBER=-1
+
+# treat bash script above forth screens like an oversized screen:
+# wait for next delimiter
+STATE=full
+DELIMITER="----------------------------------------------------------------"
+
+IFS="\\"
+cat $0 |
+   while read -r LINE ; do
+      if [ "$LINE" == "$DELIMITER" ] ; then
+         STATE=delimiter
+         (( SCREENNUMBER++ ))
+      else
+         if [ "$STATE" != "full" ] ; then
+            OUT=blk${SCREENNUMBER}
+            if [ "$STATE" == "delimiter" ] ; then
+               echo -E "( $COMMENT $OUT: $LINE )"
+               echo -E "( $COMMENT $OUT: $LINE )" > $OUT
+               STATE=header
+               LINES=1
+            else
+               (( LINES++ ))
+               if [ $LINES -gt 16 ] ; then
+                  echo "more than 16 lines - ignoring extra lines"
+                  STATE=full
+               else
+# better truncate to c/l chars for consistency (jsforth does)
+                  echo -E "$LINE" >> $OUT
+                  STATE=source
+               fi
+            fi
+         fi
+      fi
+   done
+   exit
+#
+# forth screen follow after the delimiter
+#
+----------------------------------------------------------------
+misc tools
+
+: bitsplit (s u1 -- u2 u3 )  dup dup 1- and tuck xor ;
+
+: append ( a1 n a2 -- )  
+      dup >r count dup >r rot >r + r@ move 2r> + r> c! ;
+
+----------------------------------------------------------------
+case of endof endcase test
+: foo ( -- )
+   case
+      2 of    4 .  endof
+      5 of   10 .  endof
+      dup .
+   endcase  ;
+----------------------------------------------------------------
+record constructor
+
+variable current_record
+
+: record:    create   ( <recordconstructor> -- )
+   here current_record !  cell ,
+   does>  ( <recordname> -- )
+   create @ dup , allot  ;
+
+
+: field:     
+   create  ( fieldsize <fieldname> -- ) 
+      current_record @ dup @ , +!
+   does>   ( a1 -- a2 )  @ + ;
+
+: about ( -- ) s" RecordConstructor" wiki ;
+----------------------------------------------------------------
+greatest common denominator
+
+: gcd ( u1 u2 -- u3 )
+   begin
+      tuck mod
+      ?dup 0=
+   until  ;
+
+: lcd ( u1 u2 -- u3 )
+   2dup gcd */ ;
+
+: about  s" GreatestAndLeastCommonDenominator" wiki  ;
+----------------------------------------------------------------
+basic data structures
+
+: array  create ( u -- )   cells allot
+         does>  ( u -- a ) swap cells + ;
+
+: table  create ( -- )  
+         does>  ( u -- a ) swap cells + @ ;
+
+: emitter create ( c -- )  c, 
+          does>  ( -- )    c@ emit ;
+
+: plural create ( xt -- ) , 
+     does>  ( u -- ) @ swap 0 ?do dup >r execute r> loop drop ;
+
+( char * emitter star )
+( ' star plural stars )
+----------------------------------------------------------------
+see -load screen-
+
+( this tries to display the source from file, and falls back )
+( to decompiling/disassembling if there's no method for )
+( accessing source available )
+
+hidden definitions  1 6 +thru  forth definitions  
+hidden
+: see (s <name> -- )
+   case ' dup locate
+     -1 of  dup seeinteractiveconsole endof
+     -2 of  dup seescriptfile endof
+     2dup seeblock 
+    endcase drop ;
+forth
+----------------------------------------------------------------
+see -2-
+: seeblock (s xt pos -- ) 
+   swap dup last @ = >r 
+   1+ locate dup 0< r> or
+   if   drop l/s else over - c/l / then >r
+   c/s /mod  scr ! c/l / r> 1 max range swap
+   l/s min swap do i .line cr loop ;
+
+: seeprimitive (s xt -- ) here tuck disassemble 0 ?do count
+   dup 10 = if drop cr else emit then loop  drop  ;
+: seestringlit (s a1 -- a2 ) count 2dup type + ;
+create indent 0 ,
+: indentline ( s -- )  cr indent @ spaces ;
+: !indent (s n -- )    indent ! ;
+: +indent (s n -- )    indent +! indentline ;
+: -indent (s n -- )    negate +indent ;
+----------------------------------------------------------------
+see -3-
+: .word (s a xt -- a' )
+  case ['] (lit)    of skim . endof
+       ['] (0branch) of  ." 0branch" skim . endof
+       ['] (branch) of            ." branch" skim . endof
+       ['] (for)    of  ." for " 3 +indent  cell+   endof
+       ['] (do)     of  ." do "  3 +indent  cell+   endof 
+       ['] (?do)    of  ." ?do " 3 +indent  cell+   endof 
+       ['] (next)   of 3 -indent ." next "  cell+   endof
+       ['] (loop)   of 3 -indent ." loop "  cell+   endof
+       ['] (+loop)  of 3 -indent ." +loop " cell+   endof
+       ['] (leave)  of  ." leave "         cell+    endof 
+       ['] (?leave) of  ." ?leave "        cell+    endof 
+       ['] (of)     of            ." of "   cell+   endof
+----------------------------------------------------------------
+see -4-
+       ['] (.")     of  .' ." ' seestringlit .' " ' endof
+       ['] (s")     of  .' s" ' seestringlit .' " ' endof
+       ['] (c")     of  .' c" ' seestringlit .' " ' endof
+       ['] (abort") of  .' abort" ' seestringlit .' " ' endof
+       ['] (to)     of  ." to " skim body> .name space endof
+    dup name dup if type else 2drop ." (headerless)" then space
+  endcase  ;
+----------------------------------------------------------------
+see -5-
+: decompile1 ( xt -- ) 
+   3 +indent  begin skim 
+   dup ['] exit <> while .word
+   repeat 2drop ."  ; " 0 !indent ;
+
+: decompile (s xt -- )  dup >r
+  case dup wordtype
+               0 of        seeprimitive               endof
+     ['] (const) of dup >body @ . ." constant " .name endof
+     ['] (var)   of dup >body @ . ." variable " .name endof
+     ['] (nest)  of ." : " dup .name space dup stackeffect type
+                    >body decompile1 endof
+     over .name ."  does>" decompile1
+ endcase  r> ?immediate if ." immediate " then  ;
+----------------------------------------------------------------
+see -6-
+
+: seeinteractiveconsole (s xt -- ) 
+   ." ( entered on console )" cr decompile ;
+
+: seescriptfile (s xt -- )  decompile ;
+----------------------------------------------------------------
+allocate / free test
+create nhandles  0 ,   create handles  100 cells allot
+
+: rndallocate ( -- )  1000 random 5 + allocate drop nhandles @
+ cells handles + !  1 nhandles +!  ;
+
+: rndfree ( -- )  nhandles @  dup random cells handles +
+   dup @ free drop swap 1-  dup nhandles !
+   cells handles + @ swap ! ;
+
+: run1  nhandles @ if  nhandles @ 99 < if 1000 random 500 <
+ if rndfree else rndallocate then else rndfree then else 
+ rndallocate then  ;
+: go begin run1 cls .allocated key? until  ;
+: timing begin startclock 1000 0 do run1 loop
+         elapsed . cr key? until ;
+----------------------------------------------------------------
+editor -load screen-
+
+( needs l and p from screen 8 )
+vocabulary editor
+editor definitions
+1 7 +thru
+forth definitions
+editor also
+
+----------------------------------------------------------------
+editor -1a-
+create editmode  char E c,  ( Command Edit )
+
+: show-cursor-x ( u -- )
+   2 + >r
+   here c/l 2 + blank
+   [char] ^ here r@ + c!
+   here c/l 2 + 17 writeline
+   editmode c@ here c!
+   [char] v here r> + c! 
+   here c/l 2 + 0 writeline ;
+
+: show-cursor-y ( l1 l2 -- )
+   1+ >r 1+ >r
+   here dup r@ readline bl here c! r> writeline
+   here dup r@ readline [char] >  here c! r> writeline ;
+----------------------------------------------------------------
+editor -2-
+: edit-redraw ( line column -- ) 
+   cls
+   l/s 0 do 
+      cr 2 spaces i .line
+   loop cr cr
+   show-cursor-x
+   0 swap show-cursor-y  ;
+
+: editother ( l1 c1 n -- l2 c2 0 ) 2dup edit-redraw 0 ;
+: editnext  ( l c -- l c 0 )   n editother ;
+: editprev  ( l c -- l c 0 )   p editother ;
+: editquit  ( l c -- l c -1 )  -1  ;
+----------------------------------------------------------------
+editor -3-
+: cup  ( l1 c1 -- l2 c2 f ) 
+   swap  ?dup if
+     dup 1- tuck show-cursor-y swap 0
+   else 
+     l/s 1- swap editprev 
+   then ;
+
+: cdown ( l1 c1 -- l2 c2 f )
+   swap dup 1+
+   dup l/s u< 
+   if
+      tuck show-cursor-y swap 0
+   else 
+      nip l/s mod swap editnext
+   then ;
+----------------------------------------------------------------
+editor -4-
+
+: cleft ( l1 c1 -- l2 c2 f )
+   dup 0= if cup 2drop c/l then 
+   1- dup show-cursor-x 0 ;
+
+: cright ( l1 c1 -- l2 c2 f )
+   1+ dup c/l u< if dup show-cursor-x 0
+   else  c/l mod dup show-cursor-x cdown then ;
+
+: changeeditmode ( l c -- l c f )
+   editmode c!
+   dup show-cursor-x 0  ;
+
+: editinsert ( l c -- l c f )  [char] I changeeditmode ;
+: editoverlay ( l c -- l c f ) [char] O changeeditmode ;
+----------------------------------------------------------------
+editor -5-
+
+create edit-actions ]   cleft
+                         cright
+                          cup
+                           cdown
+                            editnext
+                             editprev
+                              editquit
+                               editinsert
+                                editoverlay   [
+create edit-commands ," %'&(npqio" 
+
+----------------------------------------------------------------
+editor -6-
+
+: edit-command ( line column asc -- line column f )
+   >r edit-commands count tuck r> scan nip
+   dup if
+      - cells edit-actions + perform exit
+   then nip ;
+
+( unfinished )
+: edit-embed ( line column asc -- line column ) emit ;
+
+----------------------------------------------------------------
+editor -7-
+: edit (s scr -- )
+   [char] C editmode !
+   scr ! 0 0 2dup edit-redraw  
+   begin key 
+      editmode c@  [char] C = if
+         edit-command
+      else
+         dup esc = if 
+            drop [char] C changeeditmode
+         else
+            edit-embed 0 
+         then
+      then
+   until 2drop ;
+----------------------------------------------------------------
+PUT/GET server i/o
+( unfinished )
+
+( a n -- )
+: server://url postserver push$ push$ append$ pop$ url ;
+
+: PUT ( a n -- )  server://url ;
+
+ ( a1 n a2 -- n ) 
+: GET >r server://url pagecontents tuck r> swap move ; 
+
+----------------------------------------------------------------
+empty
+----------------------------------------------------------------
+empty
+----------------------------------------------------------------
+empty
+----------------------------------------------------------------
+empty
+----------------------------------------------------------------
+empty
+----------------------------------------------------------------
+empty
+----------------------------------------------------------------
+empty
+----------------------------------------------------------------
+empty
+----------------------------------------------------------------
+empty

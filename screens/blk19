@@ -1,0 +1,15 @@
+( localhost webdrive blk19: editor -7- )
+: edit (s scr -- )
+   [char] C editmode !
+   scr ! 0 0 2dup edit-redraw  
+   begin key 
+      editmode c@  [char] C = if
+         edit-command
+      else
+         dup esc = if 
+            drop [char] C changeeditmode
+         else
+            edit-embed 0 
+         then
+      then
+   until 2drop ;

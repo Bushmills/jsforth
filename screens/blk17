@@ -1,0 +1,13 @@
+( localhost webdrive blk17: editor -5- )
+
+create edit-actions ]   cleft
+                         cright
+                          cup
+                           cdown
+                            editnext
+                             editprev
+                              editquit
+                               editinsert
+                                editoverlay   [
+create edit-commands ," %'&(npqio" 
+

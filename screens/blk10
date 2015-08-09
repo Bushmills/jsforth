@@ -1,0 +1,6 @@
+( localhost webdrive blk10: see -6- )
+
+: seeinteractiveconsole (s xt -- ) 
+   ." ( entered on console )" cr decompile ;
+
+: seescriptfile (s xt -- )  decompile ;

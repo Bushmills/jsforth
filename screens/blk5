@@ -1,0 +1,15 @@
+( localhost webdrive blk5: see -load screen- )
+
+( this tries to display the source from file, and falls back )
+( to decompiling/disassembling if there's no method for )
+( accessing source available )
+
+hidden definitions  1 6 +thru  forth definitions  
+hidden
+: see (s <name> -- )
+   case ' dup locate
+     -1 of  dup seeinteractiveconsole endof
+     -2 of  dup seescriptfile endof
+     2dup seeblock 
+    endcase drop ;
+forth

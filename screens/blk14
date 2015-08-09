@@ -1,0 +1,13 @@
+( localhost webdrive blk14: editor -2- )
+: edit-redraw ( line column -- ) 
+   cls
+   l/s 0 do 
+      cr 2 spaces i .line
+   loop cr cr
+   show-cursor-x
+   0 swap show-cursor-y  ;
+
+: editother ( l1 c1 n -- l2 c2 0 ) 2dup edit-redraw 0 ;
+: editnext  ( l c -- l c 0 )   n editother ;
+: editprev  ( l c -- l c 0 )   p editother ;
+: editquit  ( l c -- l c -1 )  -1  ;

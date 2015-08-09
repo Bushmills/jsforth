@@ -1,0 +1,12 @@
+( localhost webdrive blk3: greatest common denominator )
+
+: gcd ( u1 u2 -- u3 )
+   begin
+      tuck mod
+      ?dup 0=
+   until  ;
+
+: lcd ( u1 u2 -- u3 )
+   2dup gcd */ ;
+
+: about  s" GreatestAndLeastCommonDenominator" wiki  ;

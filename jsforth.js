@@ -26,7 +26,7 @@
 
 
 var version    = "0" ;
-var subversion = "5.200503162030" ;
+var subversion = "5.201508092300" ;
 var title      = "## JS-Forth " + version + "." + subversion + " ##" ;
 
 
@@ -43,7 +43,7 @@ var title      = "## JS-Forth " + version + "." + subversion + " ##" ;
 var memend               = 0x100000 ;                         // memory allocated to jsforth (1 megacells is more than plenty)
 var maxcookies           = 8                                  // number of disk sectors. >20 may be unsafe.
 var cookiebasename       = "jsfblk" ;                         // cookie name for saved blocks (blk number gets appended)
-var cookieexpirationdate = "Fri, 31 Dec 2006 23:59:59 GMT" ;  // the date your hard disk will get erased.
+var cookieexpirationdate = "Fri, 31 Dec 2035 23:59:59 GMT" ;  // the date your hard disk will get erased.
 var infolines            = 1000 ;                             // backscroll buffer size of info screen
 var paddistance          = 512  ;                             // space between here and pad.
 var padsize              = 512 ;                              // remaining space above pad until dictionary overflow error

@@ -26,14 +26,17 @@
 
 
 var version    = "0" ;
-var subversion = "5.201508092300" ;
+var subversion = "5200804171342" ;
 var title      = "## JS-Forth " + version + "." + subversion + " ##" ;
 
 
 
 // if (document.captureEvents) document.captureEvents(Event.KEYPRESS) ;
 // if (window.captureEvents)   window.captureEvents(Event.CLICK) ;
-// if (document.domain.indexOf("forthfreak.net") == -1)  { version = -1 ; location.replace("http://forthfreak.net/jsforth80x25.html") ; }
+
+// commented out on 2017feb20: meant to reload most recent version from forthfreak wiki. But as wiki is defunct, so is reloading.
+//   if (document.domain.indexOf("forthfreak.net") == -1)  { version = -1 ; location.replace("http://forthfreak.net/jsforth80x25.html") ; }
+
 // document.getElementById('status').contentDocument.designMode = "on";
 
 
@@ -41,9 +44,9 @@ var title      = "## JS-Forth " + version + "." + subversion + " ##" ;
 // --------------------------------------------- vars you may wish to customize ---------------------------------------------------
 
 var memend               = 0x100000 ;                         // memory allocated to jsforth (1 megacells is more than plenty)
-var maxcookies           = 8                                  // number of disk sectors. >20 may be unsafe.
+var maxcookies           = 4                                  // number of disk sectors. >4 may be unsafe.
 var cookiebasename       = "jsfblk" ;                         // cookie name for saved blocks (blk number gets appended)
-var cookieexpirationdate = "Fri, 31 Dec 2035 23:59:59 GMT" ;  // the date your hard disk will get erased.
+var cookieexpirationdate = "Fri, 31 Dec 2015 23:59:59 GMT" ;  // the date your hard disk will get erased.
 var infolines            = 1000 ;                             // backscroll buffer size of info screen
 var paddistance          = 512  ;                             // space between here and pad.
 var padsize              = 512 ;                              // remaining space above pad until dictionary overflow error
@@ -77,21 +80,22 @@ var linelen        =  80 ;              // main screen
 var lines          =  30 ;
 
 var linelen2       =  55 ;              // info screen
-var lines2         =  30 ;              
+var lines2         =  lines ;              
 
 
 var screensize     = lines * linelen ;
-var tibsize        = linelen ;
+var tibsize        = linelen + 1 ;
 var dictionaryfull = memend - (paddistance + padsize) ;
 
+// heap memory tracking
 var usedchunk      = new Array() ;
 var freechunk      = new Array() ;
 var heapend        = memend ;
 
-
+// word header bit masks
 var immediate      =  1 ;
-var precedencebit  =  immediate ;
 var smudgebit      =  2 ;
+var precedencebit  =  immediate ;
 
 var dp_cold ;                           // allows "cold" to restore dp and wc to
 var wc_cold ;                           // initial settings
@@ -137,11 +141,10 @@ nextvocabulary <<= 1   ;  var fig       =  nextvocabulary ;  standard[fig]      
 nextvocabulary <<= 1   ;  var f79       =  nextvocabulary ;  standard[f79]       = "f79" ;
 nextvocabulary <<= 1   ;  var f83       =  nextvocabulary ;  standard[f83]       = "f83" ;
 nextvocabulary <<= 1   ;  var ans       =  nextvocabulary ;  standard[ans]       = "dpans94" ;
-nextvocabulary <<= 1   ;  var retro     =  nextvocabulary ;  standard[retro]     = "RetroForth" ;
 nextvocabulary <<= 1   ;  var foerthchen=  nextvocabulary ;  standard[foerthchen]= "FOeRTHchen" ;
 nextvocabulary <<= 1   ;  var jsf       =  nextvocabulary ;  standard[jsf]       = "JS-Forth" ;
                     var higheststandard =  nextvocabulary ;
-                          var any       =  ans | f83 | f79 | fig | jsf ;       // but not retro, not foerthchen
+                          var any       =  ans | f83 | f79 | fig | jsf ;       // but not foerthchen
 
 
 // --- no more standards, vocabularies follow ---
@@ -427,7 +430,7 @@ function newheader(name,flags)  {            // wc = word count
    hf[wc]    = flags ;                       // immediate/reveal
    x[wc]     = dp ;                          // pointer to word body (was: xt)
    m[lastxt] = wc ;                          // last
-   ds[wc]    = any | retro | foerthchen | m[current] ;  // new words standard compliance
+   ds[wc]    = any | foerthchen | m[current] ;  // new words standard compliance
    dse[wc]   = "" ;                          // new word stack effect
    debug("compiling: " + name);
 }
@@ -602,11 +605,6 @@ primitive("foerthchen",forthfoerthchen) ;
 describe("--",jsf) ;
 
 
-function forthretro()  { m[compliance] = retro ; }
-primitive("retro",forthretro) ;
-describe("--",jsf) ;
-
-
 function forthf79()  { m[compliance] = f79 ; }
 primitive("f79",forthf79) ;
 describe("--",jsf) ;
@@ -623,7 +621,7 @@ describe("--",jsf) ;
 
 function forthjsforth()  { m[compliance] = jsf ; }
 primitive("jsf",forthjsforth) ;
-describe("--",any|retro|foerthchen) ;
+describe("--",any|foerthchen) ;
 
 
 
@@ -980,22 +978,22 @@ definitions(forth) ;
 
 function forthdup()      { s[++sp] = tos ; }                     // dup
 var x_dup=primitive("dup",forthdup) ;
-describe("x -- x x",any|foerthchen|retro) ;
+describe("x -- x x",any|foerthchen) ;
 
 
 function forthqdup()     { if (tos) s[++sp]=tos ; }              // ?dup
 var x_qdup=primitive("?dup",forthqdup) ;
-describe("x -- 0 | x x",any|retro) ;
+describe("x -- 0 | x x",any) ;
 
 
 function forthdrop()     { tos = s[sp--] ; }                     // drop
 var x_drop=primitive("drop",forthdrop) ;
-describe("x --",any|retro|foerthchen) ;
+describe("x --",any|foerthchen) ;
 
 
 function forthswap()     { w = s[sp] ; s[sp] = tos ; tos = w ; } // swap
 var x_swap=primitive("swap",forthswap) ;
-describe("x1 x2 -- x2 x1",any|retro|foerthchen) ;
+describe("x1 x2 -- x2 x1",any|foerthchen) ;
 
 
 function forthover()     { s[++sp]= tos ; tos=s[sp-1] ; }        // over
@@ -1077,17 +1075,17 @@ describe("n1 n2 -- n3",any)
 
 function forthtor()      { r[++rp] = tos ; tos = s[sp--] ; }     // >r
 var x_tor=primitive(">r",forthtor) ;
-describe("x --",any|retro|foerthchen)
+describe("x --",any|foerthchen)
 
 
 function forthrfrom()    { s[++sp] = tos ; tos = r[rp--] ; }     // r>
 var x_rfrom=primitive("r>",forthrfrom) ;
-describe("-- x",any|retro|foerthchen)
+describe("-- x",any|foerthchen)
 
 
 function forthrfetch()   { s[++sp] = tos ; tos = r[rp] ; }       // r@
 var x_rfetch=primitive("r@",forthrfetch) ;
-describe("-- x",any|retro)
+describe("-- x",any)
 
 
 function forthrdrop()    { rp-- ; }                              // rdrop
@@ -1162,12 +1160,12 @@ describe("xu xu-1 ... x0 u -- xu-1 ... x0 xu",any) ;
 
 function forthfetch()    { tos = m[tos] ; }                      // @
 var x_fetch=primitive("@",forthfetch) ;
-describe("a -- x",any|retro|foerthchen) ;
+describe("a -- x",any|foerthchen) ;
 
 
 function forthstore()    { m[tos] = s[sp--] ; tos = s[sp--] ; }  // !
 var x_store=primitive("!",forthstore) ;
-describe("x a --",any|retro|foerthchen) ;
+describe("x a --",any|foerthchen) ;
 
 
 function forth2fetch()    { s[++sp] = m[tos+1] ; tos = m[tos] ; } // 2@
@@ -1186,12 +1184,12 @@ describe("d a --",any) ;
 
 function forthcfetch()   { tos = m[tos]&255 ; }                  // c@
 var x_cfetch=primitive("c@",forthcfetch) ;
-describe("a -- c",any|retro) ;
+describe("a -- c",any) ;
 
 
 function forthcstore()   { m[tos] = s[sp--]&255 ; tos = s[sp--] ; } // c!
 var x_cstore=primitive("c!",forthcstore) ;
-describe("c a --",any|retro) ;
+describe("c a --",any) ;
 
 
 function forthcount()    { s[++sp]=tos+1 ; tos=m[tos]&255 ; }     // count
@@ -1277,7 +1275,7 @@ describe("-- a",any) ;
 
 
 var x_cr=primitive("cr",cr) ;                                    // cr
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 
@@ -1350,7 +1348,7 @@ describe("--",any) ;
 
 function forthemit()      { emit(tos) ; tos = s[sp--] ; }        // emit
 var x_emit=primitive("emit",forthemit) ;
-describe("c --",any|retro|foerthchen) ;
+describe("c --",any|foerthchen) ;
 
 
 
@@ -1360,7 +1358,7 @@ function forthtype()     {                                       // type
    tos = s[sp--] ;
 }
 var x_type=primitive("type",forthtype) ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 
@@ -1428,7 +1426,7 @@ function forthparse()  {                                          // parse
    m[toin] = w - parsebuf  ;
 }
 var x_parse = primitive("parse",forthparse) ;
-describe("c -- a n",ans|jsf|retro) ;
+describe("c -- a n",ans|jsf) ;
 
 
 
@@ -1738,29 +1736,29 @@ describe("x -- x-cell",ans|f83|jsf) ;
 
 function forth2mul()     { tos <<= 1 ; }                             // 2*
 var x_2mul=primitive("2*",forth2mul) ;
-describe("x1 -- x2",any|retro) ;
+describe("x1 -- x2",any) ;
 
 
 function forth2div()     { tos >>= 1 ; }                             // 2/
 var x_2div=primitive("2/",forth2div) ;
-describe("n1 -- n2",any|retro) ;
+describe("n1 -- n2",any) ;
 
 
 function forthplus()     { tos += s[sp--] ; }                        // +
 
 
 var x_plus=primitive("+",forthplus) ;
-describe("x1 x2 -- x1+x2",any|retro|foerthchen) ;
+describe("x1 x2 -- x1+x2",any|foerthchen) ;
 
 
 function forthminus()    { tos = s[sp--] - tos ; }                   // -
 var x_minus=primitive("-",forthminus) ;
-describe("x1 x2 -- x1-x2",any|retro) ;
+describe("x1 x2 -- x1-x2",any) ;
 
 
 function forthmul()      { tos = (tos*s[sp--]) & 0xffffffff ; }      // *
 var x_mul=primitive("*",forthmul) ;
-describe("x1 x2 -- x1*x2",any|retro|foerthchen) ;
+describe("x1 x2 -- x1*x2",any|foerthchen) ;
 
 
 var floorfix = 1 - 1e-16 ;
@@ -1774,7 +1772,7 @@ function forthdiv()      {                                           // /
    throwerror(-10) ;
 }
 var x_div=primitive("/",forthdiv)
-describe("x1 x2 -- x1/x2",any|retro) ;
+describe("x1 x2 -- x1/x2",any) ;
 
 
 function forthstarslash() {                                          // */
@@ -1787,7 +1785,7 @@ function forthstarslash() {                                          // */
    throwerror(-10) ;
 }
 var x_starslash = primitive("*/",forthstarslash) ;
-describe("x1 x2 x3 -- x1*x2/x3",any|retro) ;
+describe("x1 x2 x3 -- x1*x2/x3",any) ;
 
 
 function forthmod()      {                                           // mod
@@ -1798,7 +1796,7 @@ function forthmod()      {                                           // mod
    throwerror(-10) ;
 }
 var x_mod=primitive("mod",forthmod) ;
-describe("x1 x2 -- x3",any|retro) ;
+describe("x1 x2 -- x3",any) ;
 
 
 function forthslashmod()      {                                      // /mod
@@ -1833,22 +1831,36 @@ describe("x1 x2 x3 -- x4 x5",any) ;
 
 function forthnegate()   { tos= -tos ; }                             // negate
 var x_negate=primitive("negate",forthnegate) ;
-describe("n -- -n",any|retro) ;
+describe("n -- -n",any) ;
 
 
 function forthabs()   { tos = Math.abs(tos) ; }                      // abs
 var x_abs=primitive("abs",forthabs) ;
-describe("n -- u",any|retro) ;
+describe("n -- u",any) ;
 
 
-function forthlshift()     { tos = s[sp--] << tos ; }                // lshift
+function forthlshift()     { 
+   if (tos>31) {
+      tos=0;
+      sp--;
+   } else {
+      tos = s[sp--] << tos;                 // lshift
+   }
+}
 var x_lshift = primitive("lshift",forthlshift) ;
 describe("x1 u --x2",ans|f83|jsf) ;
 primitive("<<",forthlshift) ;
 describe("x1 u -- x2",jsf) ;
 
 
-function forthrshift()     { tos = s[sp--] >>> tos ; }               // rshift
+function forthrshift()     { 
+   if (tos>31) {
+      tos=0;
+      sp--;
+   } else {
+      tos = s[sp--] >>> tos ;               // rshift
+   }
+}
 var x_rshift = primitive("rshift",forthrshift) ;
 describe("u1 u2 -- x3",ans|f83|jsf) ;
 primitive(">>",forthrshift) ;
@@ -2062,17 +2074,17 @@ definitions(forth) ;
 
 function forthor()       { tos |= s[sp--] ; }                        // or
 var x_or = primitive("or",forthor) ;
-describe("x1 x2 -- x3",any|retro|foerthchen) ;
+describe("x1 x2 -- x3",any|foerthchen) ;
 
 
 function forthand()      { tos &= s[sp--] ; }                        // and
 var x_and = primitive("and",forthand) ;
-describe("x1 x2 -- x3",any|retro|foerthchen) ;
+describe("x1 x2 -- x3",any|foerthchen) ;
 
 
 function forthxor()      { tos ^= s[sp--] ; }                        // xor
 primitive("xor",forthxor) ;
-describe("x1 x2 -- x3",any|retro|foerthchen) ;
+describe("x1 x2 -- x3",any|foerthchen) ;
 
 
 function forthinvert()   { tos ^= -1 ; }                             // invert
@@ -2094,7 +2106,7 @@ describe("x1 -- x2",fig|f79) ;
 // =================================================================================================
 function forthequ()        { tos = -(tos == s[sp--]) ; }             // = 
 var x_equ = primitive("=",forthequ) ;
-describe("x1 x2 -- f",any|retro) ;
+describe("x1 x2 -- f",any) ;
 
 
 function forthnequ()       { tos = -(tos != s[sp--]) ; }             // <>
@@ -2109,12 +2121,12 @@ describe("n1 n2 -- f",any) ;
 
 function forthless()        { tos = -(tos > s[sp--]) ; }             // < 
 var x_less = primitive("<",forthless) ;
-describe("n1 n2 -- f",any|retro) ;
+describe("n1 n2 -- f",any) ;
 
 
 function forth0equ()     { tos = -(tos == 0) ;  }                    // 0= 
 var x_0equ = primitive("0=",forth0equ) ;
-describe("x -- f",any|retro) ;
+describe("x -- f",any) ;
 
 
 function forth0nequ()     { tos = -(tos != 0) ;  }                   // 0<>
@@ -2124,7 +2136,7 @@ describe("x -- f",any) ;
 
 function forth0less()     { tos = -(tos < 0) ;  }                    // 0<
 var x_0less = primitive("0<",forth0less) ;
-describe("n -- f",any|retro) ;
+describe("n -- f",any) ;
 
 
 function forth0greater()  { tos = -(tos > 0) ;  }                    // 0>
@@ -2415,7 +2427,7 @@ definitions(forth) ;
 
 function forthexecute()  { w=tos ; tos=s[sp--] ; t[w]() ; }
 var x_execute = primitive("execute",forthexecute) ;
-describe("xt --",any|retro) ;
+describe("xt --",any) ;
 
 
 function forthperform()  { w=m[tos] ; tos=s[sp--] ; t[w]() ; }
@@ -2427,7 +2439,7 @@ describe("a --",jsf) ;
 
 function forthi() {  s[++sp]=tos  ;  tos=r[rp] ; }
 var x_i=primitive("i",forthi) ;
-describe("-- x",any|retro) ;
+describe("-- x",any) ;
 
  
 function forthj() {  s[++sp]=tos  ;  tos=r[rp-2] ; }
@@ -2445,21 +2457,6 @@ function forthunstructured()  {
    throwerror(-66) ;
 }
 var x_unstructured = primitive("unstructured",forthunstructured) 
-
-
-
-
-
-
-definitions(forth) ;
-function forth0semi()   {
-   if (!tos) {
-      tos = s[sp--] ;
-      ip = r[rp--] ;
-   }
-}
-primitive("0;",forth0semi) ;
-describe("x -- x | 0 --",retro) ;
 
 
 
@@ -2488,7 +2485,7 @@ var x_move = primitive("move",forthmove) ;
 describe("a1 a2 u --",any) ;
 
 primitive("cmove",forthmove) ;
-describe("a1 a2 u",any|retro) ;
+describe("a1 a2 u",any) ;
 
 
 
@@ -2656,7 +2653,7 @@ function forthwords()  {                                          // words
    }
 }
 var x_words = primitive("words",forthwords) ;
-describe("--",f83|ans|retro|jsf|foerthchen|only) ;
+describe("--",f83|ans|jsf|foerthchen|only) ;
 
 
 function forthvlist()  {  forthwords() ; }
@@ -2681,7 +2678,7 @@ function forthallot() {                                           // allot
    }
 }
 var x_allot= primitive("allot",forthallot) ;
-describe("n --",any|retro) ;
+describe("n --",any) ;
 
 
 function forthhide() { hf[wc] &= (!smudgebit) ; }                 // hide
@@ -2704,9 +2701,9 @@ function comma(x)     {
 }
 function forthcomma() { comma(tos) ; tos = s[sp--] ; }            // ,
 var x_comma  = primitive(",",forthcomma) ;
-describe("x --",any|retro) ;
+describe("x --",any) ;
 var x_ccomma = primitive("c,",forthcomma) ;                       // c,
-describe("c --",any|retro) ;
+describe("c --",any) ;
 
 
 
@@ -2842,12 +2839,12 @@ describe("--",any) ;
 
 function forthbrclose()  { m[state] = true ; }                            // ]
 var x_brclose = primitive("]",forthbrclose) ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 function forthbropen()  { m[state] = false ; }                            // [
 var x_bropen = primitive("[",forthbropen,immediate) ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 definitions(hidden) ;
@@ -3060,6 +3057,10 @@ screenline = new Array("( ramdrive block 4 - empty )") ; saveblock() ;
 screenline = new Array("( ramdrive block 5 - empty )") ; saveblock() ;
 screenline = new Array("( ramdrive block 6 - empty )") ; saveblock() ;
 screenline = new Array("( ramdrive block 7 - empty )") ; saveblock() ;
+screenline = new Array("( ramdrive block 8 - empty )") ; saveblock() ;
+screenline = new Array("( ramdrive block 9 - empty )") ; saveblock() ;
+screenline = new Array("( ramdrive block 10 - empty )") ; saveblock() ;
+screenline = new Array("( ramdrive block 11 - empty )") ; saveblock() ;
 
 
 
@@ -3373,19 +3374,19 @@ function forthblockorbuffer(flag) {                    // ( u -- a )  /  flag=tr
 
 function forthbuffer() { forthblockorbuffer(false) ; }   // ( u -- a )
 var x_buffer = primitive("buffer",forthbuffer) ;  
-describe("u -- a",any|retro) ;
+describe("u -- a",any) ;
 
 
 
 function forthblock()  { forthblockorbuffer(true) ; }    // ( u -- a )
 var x_block = primitive("block",forthblock) ;  
-describe("u -- a",any|retro) ;
+describe("u -- a",any) ;
 
 
 
 function forthupdate()   { bufdirty[hotbuffer] = -1 ; }
 primitive("update",forthupdate) ;  
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 
@@ -4171,12 +4172,12 @@ describe("--",any|foerthchen) ;
 
 function forthdecimal() { m[base] = 10 ; }
 var x_decimal = primitive("decimal",forthdecimal) ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 function forthhex() { m[base] = 16 ; }
 var x_hex = primitive("hex",forthhex) ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 
@@ -4242,12 +4243,12 @@ describe("u --",jsf) ;
 
 
 
-function forthepoche()  {                                  // ( -- u )
+function forthepoch()  {                                  // ( -- u )
    s[++sp] = tos ;
    w = new Date().getTime() ;
    tos = Math.floor(w/1000) ;    
 }
-primitive("epoche",forthepoche)
+primitive("epoch",forthepoch)
 describe("-- u",jsf) ;
 
 
@@ -4267,34 +4268,23 @@ describe("u1 -- u2",jsf)
 
 
 
-
-function forthurl()  {      // ( a n -- )   open the url in a new window
-   forthpack();
-   if (tos.substr(0,7) != "http://")   tos = ("http://" + tos) ;
-   window.open(tos) ;
-   tos=s[sp--];
-}
-primitive("url",forthurl)
-describe("a n ",jsf) ;
-
-
-
 function loadurl(url)  {
+   if (url.substr(0,7) != "http://")   url = ("http://" + url);
    window.frames['help'].window.location.replace(url);
 }
 
 
-function forthloadurl()  {    //  ( a n -- )
-   loadurl(pack(s[sp],tos));
-   sp-- ;
-   tos = s[sp--] ;
+function forthurl()  {      // ( a n -- )   open the url in a new window
+   forthpack();
+   loadurl(tos);
+   tos=s[sp--];
 }
-primitive("loadurl",forthloadurl) ;
-
+primitive("url",forthurl)
+describe("a n ",jsf);
 
 
 function wiki(pagename)  {
-   loadurl("http://wiki.forthfreak.net/index.cgi?" + pagename) ;
+   loadurl("wiki.forthfreak.net/index.cgi?" + pagename);
  }
 
 
@@ -4307,17 +4297,17 @@ primitive("wiki",forthwiki) ;
 
 
 
-function forthgpl()  { loadurl("http://www.gnu.org/licenses/gpl.txt")  }
+function forthgpl()  { loadurl("www.gnu.org/licenses/gpl.txt")  }
 primitive("gpl",forthgpl) ;
 describe("--",jsf) ;
 
 
-function forthquickref()  { loadurl("http://wiki.forthfreak.net/index.cgi?JavaScriptForthQuickReference")  }
+function forthquickref()  { wiki("JavaScriptForthQuickReference")  }
 primitive("quickref",forthquickref) ;
 describe("--",jsf) ;
 
 
-function tutorials() { loadurl("http://wiki.forthfreak.net/index.cgi?ForthTutorials") }
+function tutorials() { wiki("ForthTutorials") }
 primitive("tutorials",tutorials) ;
 describe("--",jsf) ;
 
@@ -4566,10 +4556,10 @@ var x_esc       = constant("esc",esc) ;                       describe("-- c",js
                   constant("debugger",debugging) ;            describe("-- a",jsf) ;
 var x_xontext   = constant("context",context) ;               describe("-- a",jsf) ;
 var x_current   = constant("current",current) ;               describe("-- a",jsf) ;
-var x_blk       = constant("blk",blk) ;                       describe("-- a",any|retro) ;
-var x_scr       = constant("scr",scr) ;                       describe("-- a",any|retro) ;
+var x_blk       = constant("blk",blk) ;                       describe("-- a",any) ;
+var x_scr       = constant("scr",scr) ;                       describe("-- a",any) ;
 var x_lastxt    = constant("last",lastxt) ;                   describe("-- a",jsf) ;
-var x_base      = constant("base",base) ;                     describe("-- a",any|retro) ;
+var x_base      = constant("base",base) ;                     describe("-- a",any) ;
 var x_tib       = constant("tib",tib) ;                       describe("-- a",any) ;
 var x_span      = constant("span",span) ;                     describe("-- a",fig|f79|f83|ans) ;
 var x_hashtib   = constant("#tib",hashtib) ;                  describe("-- a","obsolete, variable containing #chars in tib",fig|f79|f83|ans) ;
@@ -4602,7 +4592,7 @@ definitions(hidden) ;
 
 definitions(forth) ;
 var x_abort          = colon("abort")       ;   compile(x_lit,-1,x_throw) ;
-describe("--",any|retro)   ;
+describe("--",any)   ;
 
 
 
@@ -4731,7 +4721,7 @@ describe("--",ans|jsf) ;
 var x_dotquote = colon('."',immediate);
    compile(x_lit,x_brdotquote,x_compilestringword);
 semicolon();
-describe("--",any|retro|foerthchen) ;
+describe("--",any|foerthchen) ;
 
 
 
@@ -4746,7 +4736,7 @@ describe("--",any) ;
 colon(".'",immediate);
    compile(x_lit,x_brdotquote,x_compiletickstringword);
 semicolon();
-describe("--",any|retro|foerthchen) ;
+describe("--",any|foerthchen) ;
 
 
 var x_dumul = colon("du*")     // ( ud1 u -- ud2 )
@@ -4824,13 +4814,13 @@ describe("--",any) ;
 
 // ( a <stream> -- )
 var x_create = colon("create") ;    compile(x_lit,x_dovar,x_use,x_reveal) ; semicolon() ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 var x_const  = colon("constant") ;
    compile(x_lit,x_doconst,x_use,x_comma,x_reveal) ;    // which is left in here for the moment. doesn't hurt.
 semicolon() ;
-describe("x --",any|retro) ;
+describe("x --",any) ;
 
 
 colon("fconstant")   ;              compile(x_lit,x_dofconst,x_use,x_fcomma,x_reveal) ; semicolon() ;
@@ -4842,18 +4832,18 @@ describe("x --",ans|jsf) ;
 
 
 colon("variable")   ;               compile(x_create,x_0,x_comma) ; semicolon() ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 alias("fvariable") ;
 describe("-- ) ( -- a",any) ;
 
 
 colon(";",immediate) ;              compile(x_lit,x_unnest,x_comma,x_bropen,x_reveal) ; semicolon() ;
-describe("--",any|retro|foerthchen) ;
+describe("--",any|foerthchen) ;
 
 
 colon(":") ;                        compile(x_lit,x_nest,x_use,x_brclose) ; semicolon() ;
-describe("<wordname> --",any|retro|foerthchen) ;
+describe("<wordname> --",any|foerthchen) ;
 
 
 colon("does>",immediate) ;
@@ -4879,7 +4869,7 @@ describe("-- f",fig|f79) ;
 
 
 var x_key = colon("key") ;   compile(x_key1,x_key2) ; semicolon() ;
-describe("-- c",any|retro) ;
+describe("-- c",any) ;
 
 
 
@@ -4916,7 +4906,7 @@ var x_query = colon("query") ;
    compile(x_dup,x_hashtib,x_store,x_storesource) ;
    compile(x_in,x_off,x_space) ;
 semicolon() ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 
@@ -4957,7 +4947,7 @@ describe("<stream> --",any) ;
 colon("(",immediate) ;
    compile(x_lit,41,x_parse,x_2drop) ;
 semicolon() ;
-describe("<stream> --",any|retro) ;
+describe("<stream> --",any) ;
 
 
 
@@ -5027,14 +5017,14 @@ describe("d --",any) ;
 var x_udot = colon("u.")  ;                                              // u.
    compile(x_0,x_ddot) ;
 semicolon() ;
-describe("u --",any|retro) ;
+describe("u --",any) ;
 
 
 
 var x_dot = colon(".")  ;                                                // .
    compile(x_stod,x_ddot) ;
 semicolon() ;
-describe("n --",any|retro) ;
+describe("n --",any) ;
 
 
 
@@ -5109,7 +5099,7 @@ var x_for = colon("for",immediate) ;
    compile(x_here,x_0,x_comma) ;
    compile(x_lit,6) ;
 semicolon() ;
-describe("n --",jsf|retro) ;
+describe("n --",jsf) ;
 
 
 var x_next = colon("next",immediate) ;
@@ -5118,14 +5108,14 @@ var x_next = colon("next",immediate) ;
    compile(x_dup,x_1plus,x_resolve) ;
    compile(x_resolveback,x_innerloop,x_store) ;
 semicolon() ;
-describe("--",jsf|retro) ;
+describe("--",jsf) ;
 
 
 
 var x_if = colon("if",immediate) ;
    compile(x_qcomp,x_qclause,x_mark,x_1) ;
 semicolon() ;
-describe("f --",any|retro) ;
+describe("f --",any) ;
 
 
 
@@ -5133,7 +5123,7 @@ var x_else = colon("else",immediate) ;
    compile(x_qcomp,x_1,x_structured,x_clause,x_mark) ;
    compile(x_swap,x_resolveback,x_2) ;
 semicolon() ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 
@@ -5141,7 +5131,7 @@ var x_then = colon("then",immediate) ;
    compile(x_qcomp,x_dup,x_2,x_equ,x_plus) ;
    compile(x_1,x_structured,x_resolveback) ;
 semicolon() ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 alias("endif",immediate) ;
 describe("-- ) ( --",jsf) ;
@@ -5151,7 +5141,7 @@ describe("-- ) ( --",jsf) ;
 var x_begin = colon("begin",immediate) ;
    compile(x_qcomp,x_here,x_lit,3) ;
 semicolon() ;
-describe("--",any|retro) ;
+describe("--",any) ;
 
 
 
@@ -5182,7 +5172,7 @@ describe("--",any) ;
 var x_until = colon("until",immediate) ;
   compile(x_qcomp,x_lit,3,x_structured,x_qclause,x_resolve) ;
 semicolon() ;
-describe("f --",any|retro) ;
+describe("f --",any) ;
 
 
 
@@ -5334,7 +5324,7 @@ var x_tick = colon("'") ;
       compile(x_notfound) ;   
    THEN() ;
 semicolon() ;
-describe("<stream> -- xt",ans|f83|jsf|retro) ;
+describe("<stream> -- xt",ans|f83|jsf) ;
 
 
 
@@ -5400,7 +5390,6 @@ var x_interpret = colon("interpret") ;                     // ( -- )
          ELSE() ;
             compile(x_compiling) ;
             IF() ;
-//               compile(x_peephole) ;
                compile(x_comma) ;
             ELSE() ;
                compile(x_execute) ;

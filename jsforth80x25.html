@@ -1,0 +1,33 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+
+<HTML>
+  <HEAD>
+    <TITLE>
+      Forth Interpreter in JavaScript
+    </TITLE>
+  </HEAD>
+  <BODY
+     <NOSCRIPT>
+<!--
+      <HR>JS-Forth won't work: Javascript required.<HR>
+//-->
+     </NOSCRIPT>
+     <p id="title">
+     <a href="http://wiki.forthfreak.net/index.cgi?jsforth">
+     jsforth -- Forth interpreter in JavaScript</a> -- best viewed with Firefox, Mozilla, Netscape, Epiphany, Galeon.<br>
+     Avoid Internet Explorer, it really sucks with this program.
+     Recently some browsers changed to not passing backspace chars, entered
+     into a form, to the keyhandler dealing with input. This results in
+     jsforth not able to receive Backspace keys, entered into the form,
+     while form contents are still updated (letting chars disappear). I have
+     no solution for this at this point.
+     <br></p>
+     <form name="terminal">
+        <textarea type="text"   name="dialog" rows="30" cols="82" onKeyPress="return KeyEvent(event)" onClick="PasteEvent(event)"  onError="return ErrorEvent(event)"></textarea>
+        <textarea type="text"   name="status" rows="30" cols="55" onFocus="return FocusEvent(event)" onClick="SelectEvent(event)"></textarea>
+     </form>
+     <SCRIPT LANGUAGE="JavaScript" type="text/javascript" SRC="jsforth.js"></SCRIPT>
+     <iframe name="help" width="1000" height="200" src="DOCS/JSFORTH.HTML"></iframe>
+     <iframe name="dataframe" width="0" height="0" onload="LoadingCompleteEvent(this)" src=""></iframe>
+  </BODY>
+</HTML>
